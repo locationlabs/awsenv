@@ -6,10 +6,10 @@ calling assume role multiple times if we reuse the same session.
 """
 from os import environ
 from time import time
-from uuid import UUID
+from uuid import UUID, uuid1
 
 
-DEFAULT_EXPIRATION = 3600
+DEFAULT_SESSION_DURATION = 3600
 
 
 def uuid1_to_timestamp(uuid):
@@ -26,24 +26,40 @@ def uuid1_to_timestamp(uuid):
 
 class CachedSession(object):
 
-    def __init__(self, name, token):
+    def __init__(self, name, token, profile):
         self.name = name
         self.token = token
+        self.profile = profile
 
     @classmethod
-    def from_environment(cls, now=None, session_duration=DEFAULT_EXPIRATION):
+    def make_name(cls):
+        """
+        Generate a UUID1 for the session name.
+
+        Since uuid1 is time-based, we can simultaneusly generate a unique id
+        and track expiration.
+        """
+        return uuid1().hex
+
+    @classmethod
+    def from_environment(cls, now=None, session_duration=None):
         """
         Load a session from environment variables.
 
         Introduces the `AWS_SESSION_NAME` variable to save the session's name.
         """
-        if any(var not in environ for var in ["AWS_SESSION_NAME", "AWS_SESSION_TOKEN"]):
+        envvars = ["AWS_SESSION_NAME", "AWS_SESSION_TOKEN", "AWS_PROFILE"]
+        variables = [environ.get(key) for key in envvars]
+        if any(variable is None for variable in variables):
             return None
 
-        name, token = environ["AWS_SESSION_NAME"], environ["AWS_SESSION_TOKEN"]
+        name, token, profile = variables
 
         if now is None:
             now = time()
+
+        if session_duration is None:
+            session_duration = DEFAULT_SESSION_DURATION
 
         session_timestamp = uuid1_to_timestamp(name)
         if (session_timestamp + session_duration) < now:
@@ -52,4 +68,5 @@ class CachedSession(object):
         return cls(
             name=name,
             token=token,
+            profile=profile,
         )

@@ -1,37 +1,37 @@
 """
-CLI input/output tests.
+Tests for command line input and output.
 """
 from os import environ
 
 from hamcrest import assert_that, is_, equal_to
 
-from awsenv.main import choose_profile, to_environment
+from awsenv.main import parse_args, to_environment
 
 
-def test_choose_profile_default():
-    profile = choose_profile()
-    assert_that(profile, is_(equal_to("default")))
+def test_parse_args_default():
+    args = parse_args([])
+    assert_that(args.profile, is_(equal_to("default")))
 
 
-def test_choose_profile_custom_default():
+def test_parse_args_custom_default():
     try:
         environ["AWS_DEFAULT_PROFILE"] = "custom"
-        profile = choose_profile()
-        assert_that(profile, is_(equal_to("custom")))
+        args = parse_args([])
+        assert_that(args.profile, is_(equal_to("custom")))
     finally:
         del environ["AWS_DEFAULT_PROFILE"]
 
 
-def test_choose_profile_custom():
-    profile = choose_profile(["custom"])
-    assert_that(profile, is_(equal_to("custom")))
+def test_parse_args_custom():
+    args = parse_args(["custom"])
+    assert_that(args.profile, is_(equal_to("custom")))
 
 
-def test_choose_profile_custom_env():
+def test_parse_args_custom_env():
     try:
         environ["AWS_PROFILE"] = "custom"
-        profile = choose_profile()
-        assert_that(profile, is_(equal_to("custom")))
+        args = parse_args([])
+        assert_that(args.profile, is_(equal_to("custom")))
     finally:
         del environ["AWS_PROFILE"]
 

@@ -1,23 +1,9 @@
 """
 Profile-aware session wrapper.
 """
-from os import environ
-from time import time
-from uuid import UUID, uuid1
-
 from botocore.session import Session
 
-
-def uuid1_to_timestamp(uuid):
-    """
-    Translate uuid1s to timestamps.
-    """
-    # http://code.activestate.com/recipe/576420/
-    # 0x01b21dd213814000 is the number of 100-ns intervals between the
-    # UUID epoch 1582-10-15 00:00:00 and the Unix epoch 1970-01-0100:00:00.
-    MAGIC = 0x01b21dd213814000
-    unix_timestamp = (UUID(uuid).time - MAGIC) / 1e7
-    return unix_timestamp
+from awsenv.cache import CachedSession
 
 
 class AWSProfile(object):
@@ -26,13 +12,12 @@ class AWSProfile(object):
     """
     def __init__(self,
                  profile,
-                 session_token=None,
-                 session_name=None,
-                 session_duration=3600):
+                 session_duration,
+                 cached_session=None):
         self.profile = profile
-        self.session = Session(profile=self.profile)
-        self.session_name = environ.get("AWS_SESSION_NAME")
         self.session_duration = session_duration
+        self.cached_session = cached_session
+        self.session = Session(profile=self.profile)
 
     @property
     def access_key_id(self):
@@ -43,16 +28,20 @@ class AWSProfile(object):
         return self.merged_config.get("aws_secret_access_key")
 
     @property
-    def session_token(self):
-        return self.merged_config.get("aws_session_token")
-
-    @property
     def region_name(self):
         return self.merged_config.get("region")
 
     @property
     def role_arn(self):
         return self.profile_config.get("role_arn")
+
+    @property
+    def session_token(self):
+        return self.cached_session.token if self.cached_session else None
+
+    @property
+    def session_name(self):
+        return self.cached_session.name if self.cached_session else None
 
     @property
     def profile_config(self):
@@ -85,22 +74,6 @@ class AWSProfile(object):
             )
         return result
 
-    def get_cached_token(self, now=None):
-        if "AWS_SESSION_TOKEN" not in environ:
-            return None
-
-        if self.session_name is None:
-            return None
-
-        if now is None:
-            now = time()
-
-        session_timestamp = uuid1_to_timestamp(self.session_name)
-        if (session_timestamp + self.session_duration) < now:
-            return None
-
-        return environ["AWS_SESSION_TOKEN"]
-
     def to_envvars(self):
         return {
             "AWS_ACCESS_KEY_ID": self.access_key_id,
@@ -111,28 +84,32 @@ class AWSProfile(object):
             "AWS_SESSION_TOKEN": self.session_token,
         }
 
-    def assume_role(self, now=None):
+    def update_credentials(self):
         """
-        Assume the profile's role, if any.
+        Update the profile's credentials by assuming a role, if necessary.
         """
         if not self.role_arn:
             return
 
-        cached_token = self.get_cached_token(now)
-        if cached_token is not None:
-            self.session.set_credentials(
-                access_key=self.access_key_id,
-                secret_key=self.secret_access_key,
-                token=cached_token,
-            )
-            return
+        if self.cached_session is not None:
+            # use cached token
+            access_key, secret_key = self.access_key_id, self.secret_access_key
+        else:
+            # assume role to get a new token
+            access_key, secret_key = self.assume_role()
 
-        # generate a UUID for the session name; since uuid1 is time-based,
-        # we can avoid regeneration of session tokens before they have expired
-        self.session_name = uuid1().hex
+        self.session.set_credentials(
+            access_key=access_key,
+            secret_key=secret_key,
+            token=self.cached_session.token if self.cached_session else None,
+        )
 
-        # be sure to pass the merged configuration here if you want
-        # to rely on the source_profile property
+    def assume_role(self):
+        """
+        Assume a role.
+        """
+        # we need to pass in the regions and keys because botocore does not
+        # automatically merge configuration from the source_profile
         sts_client = self.session.create_client(
             service_name="sts",
             region_name=self.region_name,
@@ -140,13 +117,20 @@ class AWSProfile(object):
             aws_secret_access_key=self.secret_access_key,
         )
 
+        session_name = CachedSession.make_name()
         result = sts_client.assume_role(**{
             "RoleArn": self.role_arn,
-            "RoleSessionName": self.session_name,
+            "RoleSessionName": session_name,
             "DurationSeconds": self.session_duration,
         })
-        self.session.set_credentials(
-            access_key=result["Credentials"]["AccessKeyId"],
-            secret_key=result["Credentials"]["SecretAccessKey"],
+
+        # update the cached session
+        self.cached_session = CachedSession(
+            name=session_name,
             token=result["Credentials"]["SessionToken"],
+            profile=self.profile,
+        )
+        return (
+            result["Credentials"]["AccessKeyId"],
+            result["Credentials"]["SecretAccessKey"],
         )
