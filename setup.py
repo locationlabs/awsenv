@@ -19,6 +19,7 @@ setup(
         "botocore>=1.3.1",
     ],
     tests_require=[
+        "PyHamcrest>=1.8.5",
         "mock>=1.0.1",
         "coverage>=4.0.1",
     ],
