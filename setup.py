@@ -19,7 +19,7 @@ setup(
         "botocore>=1.3.1",
     ],
     tests_require=[
-        "mock>=1.3.0",
+        "mock>=1.0.1",
         "coverage>=4.0.1",
     ],
     test_suite="awsenv.tests",
