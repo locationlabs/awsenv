@@ -1,4 +1,5 @@
 """
+CLI input/output tests.
 """
 from os import environ
 
