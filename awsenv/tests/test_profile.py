@@ -7,7 +7,7 @@ from os import environ
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 
-from hamcrest import assert_that, has_length, equal_to, is_, none
+from hamcrest import assert_that, equal_to, is_, none
 
 from awsenv.cache import CachedSession, DEFAULT_SESSION_DURATION
 from awsenv.profile import AWSProfile
@@ -67,8 +67,8 @@ def test_profile_no_role_arn():
             assert_that(aws_profile.cached_session, is_(none()))
 
         # session variables are NOT set
-        unset_keys = [key for key, value in aws_profile.to_envvars().items() if value is None]
-        assert_that(unset_keys, has_length(2))
+        assert_that(aws_profile.to_envvars().get("AWS_SESSION_TOKEN"), is_(none()))
+        assert_that(aws_profile.to_envvars().get("AWS_SESSION_NAME"), is_(none()))
 
 
 def test_profile_role_arn_cached_session():
@@ -92,8 +92,14 @@ def test_profile_role_arn_cached_session():
             assert_that(aws_profile.cached_session, is_(equal_to(CACHED_SESSION)))
 
         # session variables are set
-        unset_keys = [key for key, value in aws_profile.to_envvars().items() if value is None]
-        assert_that(unset_keys, has_length(0))
+        assert_that(
+            aws_profile.to_envvars().get("AWS_SESSION_TOKEN"),
+            is_(equal_to(CACHED_SESSION.token)),
+        )
+        assert_that(
+            aws_profile.to_envvars().get("AWS_SESSION_NAME"),
+            is_(equal_to(CACHED_SESSION.name)),
+        )
 
 
 def test_profile_with_role_arn():
@@ -119,5 +125,11 @@ def test_profile_with_role_arn():
             assert_that(assume_role.call_count, is_(equal_to(1)))
 
         # session variables are set
-        unset_keys = [key for key, value in aws_profile.to_envvars().items() if value is None]
-        assert_that(unset_keys, has_length(0))
+        assert_that(
+            aws_profile.to_envvars().get("AWS_SESSION_TOKEN"),
+            is_(equal_to(CACHED_SESSION.token)),
+        )
+        assert_that(
+            aws_profile.to_envvars().get("AWS_SESSION_NAME"),
+            is_(equal_to(CACHED_SESSION.name)),
+        )
