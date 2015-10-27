@@ -1,0 +1,14 @@
+language: python
+python:
+- '2.7'
+sudo: false
+install: pip install .
+script: python setup.py nosetests
+deploy:
+  provider: pypi
+  user: jessemyers
+  password:
+    secure: UxSvfFmg06TFVTLpE+jxEEqu24qInBqDQveZNW3BhYOelftqKdtGXXrg63E6moAexevhZ417fLWl/F7P/IEQeimLFcLErnmQmPYfIlGVZZUiVlDnloPXKkKiLQkc95X3+beDAiqD9FRpkgROngiMgsWNkSP+9Gke3fzWjLgd8zD4Ffb/p0b/bqUCb0AYxkOBrXEhVnd6yPMhHFar5dB5eykehx5xrcit8qYWgvY+b2qzvFYxVV0CfMJ7j02bzW2tL/hfdUsmKqjfRt34mXSNbhCeI+5drAYciSlJIlCRPAN93wVGyHi9gxXRj00q8YQTQJwu/FX7ctGXZI9fAkO9eN8FwBZByCBevi7+amQ9XuFS/ywhAb6FVblBKXLCqUzOZkv4868syIV/KrMtUrcsm8zrK8tya0FNzkfjfFYH3ChQJLS0on4K9kezhBJWJFldG4JflagRoXsByLQmZjzF8LwQ8KTkslFR/qTsS2UeCIWKT2yZhg9MKnEc26i/XhKzhOAfGFeJjMEc9dnQh1AOkJyJ/AYAumxPy7G3YnMs2lZEVZapi3wkOU+Px79NEyzJ9hDGrJ6jsJQXC2I5JVL2dhR0g0TbGubgxbiMxclPBxc+5irgv5hj43qOiKhC9ekWeKG6ToJkmMBM0XFGCAbSLUrogPIfkexyXgrbBxjmDQs=
+  on:
+    tags: true
+    repo: locationlabs/awsenv
