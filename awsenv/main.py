@@ -45,7 +45,7 @@ def to_environment(variables):
 
 
 def main():
-    args = parse_args(argv)
+    args = parse_args(argv[1:])
     cached_session = CachedSession.from_environment(
         session_duration=args.session_duration,
     )
