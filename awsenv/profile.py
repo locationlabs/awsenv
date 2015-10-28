@@ -1,6 +1,8 @@
 """
 Profile-aware session wrapper.
 """
+from os import environ
+
 from botocore.session import Session
 
 from awsenv.cache import CachedSession
@@ -118,8 +120,8 @@ class AWSProfile(object):
             return
 
         if self.cached_session is not None:
-            # use cached token
-            access_key, secret_key = self.access_key_id, self.secret_access_key
+            # use current role
+            access_key, secret_key = self.current_role()
         else:
             # assume role to get a new token
             access_key, secret_key = self.assume_role()
@@ -128,6 +130,15 @@ class AWSProfile(object):
             access_key=access_key,
             secret_key=secret_key,
             token=self.cached_session.token if self.cached_session else None,
+        )
+
+    def current_role(self):
+        """
+        Load credentials for the current role.
+        """
+        return (
+            environ.get("AWS_ACCESS_KEY_ID", self.access_key_id),
+            environ.get("AWS_SECRET_ACCESS_KEY", self.secret_access_key),
         )
 
     def assume_role(self):
