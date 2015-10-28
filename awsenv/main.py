@@ -51,6 +51,11 @@ def to_environment(variables):
 def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION):
     """
     Construct an AWS Profile.
+
+    :param profile: the name of the profile to use; resolves via environment
+           variables if not set
+    :param session_duration: the session duration (in seconds), defafults to
+           one hour, which is also the maximum
     """
     # choose the profile name if necessary
     if profile is None:

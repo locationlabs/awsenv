@@ -21,6 +21,32 @@ class AWSProfile(object):
         self.cached_session = cached_session
         self.session = Session(profile=self.profile)
 
+    def create_client(self,
+                      service_name,
+                      api_version=None,
+                      use_ssl=True,
+                      verify=None,
+                      endpoint_url=None,
+                      config=None):
+        """
+        Create a service from this profile's session.
+
+        Automatically populates the region name, access key, secret key, and session token
+        from the loaded profile. Allows other parameters to be passed.
+        """
+        return self.session.create_client(
+            service_name=service_name,
+            region_name=self.region_name,
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key,
+            aws_session_token=self.session_token,
+            api_version=api_version,
+            use_ssl=use_ssl,
+            verify=verify,
+            endpoint_url=endpoint_url,
+            config=config,
+        )
+
     @property
     def access_key_id(self):
         return self.merged_config.get("aws_access_key_id")

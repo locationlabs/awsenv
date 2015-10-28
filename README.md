@@ -39,11 +39,19 @@ For `virtualenvwrapper` users, the following is recommended:
     ln -s ~/.virtualenvs/awsenv/bin/awsenv ~/bin
 
 
-## Usage
+## Command Line Usage
 
 Invoke `awsenv` with a profile name (or no arguments for the default profile):
 
-    $ awsenv myprofile
+    awsenv myprofile
+
+Or set the `AWS_PROFILE` environment variable and run `awsenv` without arguments:
+
+    export AWS_PROFILE=myprofile
+    awsenv
+
+The output will be a series of `export` (or `unset`) statements:
+
     export AWS_DEFAULT_REGION=us-west-2
     export AWS_SESSION_TOKEN=<redacted>
     export AWS_PROFILE=myprofile
@@ -51,10 +59,23 @@ Invoke `awsenv` with a profile name (or no arguments for the default profile):
     export AWS_SECRET_ACCESS_KEY=<redacted>
     export AWS_ACCESS_KEY_ID=<redacted>
 
+Evaluate the output of to load it into your shell:
 
-Evaluate the output of `awsenv` to load it into your shell:
+    eval "$(awsenv myprofile)"
 
-    $ eval "$(awsenv myprofile)"
+
+## Programmatic Usage
+
+Python programs and scripts that use `botocore` and need cross-account access can use the
+underlying library directly to obtain an `AWSProfile` instance. The instance, in turn,
+defines its own `create_client` function, which will properly set the profile's region,
+access key, secret key, and session token:
+
+    from awsenv.main import get_profile
+
+    profile = get_profile()
+    client = profile.create_client("ec2")
+    print client.describe_instances()
 
 
 ## Session Caching
