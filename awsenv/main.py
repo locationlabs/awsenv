@@ -48,7 +48,7 @@ def to_environment(variables):
     )
 
 
-def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION):
+def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION, assume_role=True):
     """
     Construct an AWS Profile.
 
@@ -56,6 +56,8 @@ def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION):
            variables if not set
     :param session_duration: the session duration (in seconds), defafults to
            one hour, which is also the maximum
+    :param assume_role: control whether the given profile's role will be assumed;
+           if not, the default profile's credentials will be used
     """
     # choose the profile name if necessary
     if profile is None:
@@ -64,7 +66,7 @@ def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION):
     # look for a cached session in the environment
     cached_session = CachedSession.from_environment(
         session_duration=session_duration,
-    )
+    ) if assume_role else None
 
     # then load the profile, updating credentials based on the cached session and/or assumed role
     aws_profile = AWSProfile(
@@ -72,7 +74,8 @@ def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION):
         session_duration=session_duration,
         cached_session=cached_session,
     )
-    aws_profile.update_credentials()
+    if assume_role:
+        aws_profile.update_credentials()
 
     return aws_profile
 
