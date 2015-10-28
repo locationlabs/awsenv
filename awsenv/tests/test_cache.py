@@ -1,24 +1,12 @@
 """
 Tests for cached session loading.
 """
-from contextlib import contextmanager
-from os import environ
 from time import time
 
 from hamcrest import assert_that, is_, equal_to, none
 
 from awsenv.cache import CachedSession, DEFAULT_SESSION_DURATION
-
-
-@contextmanager
-def envvars(**kwargs):
-    environ.update(kwargs)
-    try:
-        yield
-    finally:
-        # not trying to restore existing values
-        for key in kwargs:
-            del environ[key]
+from awsenv.tests import envvars
 
 
 def test_cached_session_absent():

@@ -13,7 +13,7 @@ class AWSProfile(object):
     def __init__(self,
                  profile,
                  session_duration,
-                 cached_session=None):
+                 cached_session):
         self.profile = profile
         self.session_duration = session_duration
         self.cached_session = cached_session
