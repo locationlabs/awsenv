@@ -1,5 +1,8 @@
 # Release Change Log
 
+Version 1.3:
+ - Bug fix when re-running as a library within an exported shell environment
+
 Version 1.2:
  - Improve programmatic API for `AWSProfile`
 
