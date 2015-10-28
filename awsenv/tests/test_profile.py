@@ -55,6 +55,7 @@ def test_profile_no_role_arn():
         aws_profile = AWSProfile(
             profile=PROFILE,
             session_duration=DEFAULT_SESSION_DURATION,
+            cached_session=None,
         )
 
         assert_that(aws_profile.role_arn, is_(none()))
@@ -110,6 +111,7 @@ def test_profile_with_role_arn():
         aws_profile = AWSProfile(
             profile=PROFILE,
             session_duration=DEFAULT_SESSION_DURATION,
+            cached_session=None,
         )
         assert_that(aws_profile.role_arn, is_(equal_to(ROLE_ARN)))
         assert_that(aws_profile.cached_session, is_(none()))
