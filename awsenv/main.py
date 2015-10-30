@@ -7,14 +7,14 @@ from pipes import quote
 from sys import argv
 
 from awsenv.cache import CachedSession, DEFAULT_SESSION_DURATION
-from awsenv.profile import AWSProfile
+from awsenv.profile import AWSProfile, get_default_profile_name
 
 
 def get_profile_name():
     """
     Get the profile name forom the environment.
     """
-    return environ.get("AWS_PROFILE", environ.get("AWS_DEFAULT_PROFILE", "default"))
+    return environ.get("AWS_PROFILE", get_default_profile_name())
 
 
 def parse_args(args):
@@ -48,7 +48,10 @@ def to_environment(variables):
     )
 
 
-def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION, assume_role=True):
+def get_profile(profile=None,
+                session_duration=DEFAULT_SESSION_DURATION,
+                assume_role=True,
+                account_id=None):
     """
     Construct an AWS Profile.
 
@@ -73,6 +76,7 @@ def get_profile(profile=None, session_duration=DEFAULT_SESSION_DURATION, assume_
         profile=profile,
         session_duration=session_duration,
         cached_session=cached_session,
+        account_id=account_id,
     )
     if assume_role:
         aws_profile.update_credentials()
