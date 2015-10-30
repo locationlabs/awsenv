@@ -1,5 +1,8 @@
 # Release Change Log
 
+Version 1.5:
+ - Support auto-generation of profile configuration if account id is known
+
 Version 1.4:
  - Support non-assumption of roles
  
