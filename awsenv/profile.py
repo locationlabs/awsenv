@@ -3,9 +3,17 @@ Profile-aware session wrapper.
 """
 from os import environ
 
+from botocore.exceptions import ProfileNotFound
 from botocore.session import Session
 
 from awsenv.cache import CachedSession
+
+
+def get_default_profile_name():
+    """
+    Get the default profile name from the environment.
+    """
+    return environ.get("AWS_DEFAULT_PROFILE", "default")
 
 
 class AWSProfile(object):
@@ -15,10 +23,21 @@ class AWSProfile(object):
     def __init__(self,
                  profile,
                  session_duration,
-                 cached_session):
+                 cached_session,
+                 account_id=None):
+        """
+        Configure a session for a profile.
+
+        :param profile: the name of the profile to use, if any
+        :param session_duration: the duration of the session (in seconds)
+               must be in the range 900-3600
+        :param cached_session: the cached session to use, if any
+        :param account_id: the account id for profile auto-generation (if any)
+        """
         self.profile = profile
         self.session_duration = session_duration
         self.cached_session = cached_session
+        self.account_id = account_id
         self.session = Session(profile=self.profile)
 
     def create_client(self,
@@ -76,7 +95,20 @@ class AWSProfile(object):
         """
         Return the loaded configuration for the profile.
         """
-        return self.session.get_scoped_config()
+        try:
+            return self.session.get_scoped_config()
+        except ProfileNotFound:
+            if self.account_id is None:
+                raise
+            # attempt to generate the profile configuration
+            self.session._profile_map[self.profile] = dict(
+                role_arn="arn:aws:iam::{}:role/{}".format(
+                    self.account_id,
+                    self.profile,
+                ),
+                source_profile=get_default_profile_name(),
+            )
+            return self.session.get_scoped_config()
 
     @property
     def source_profile_config(self):
