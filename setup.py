@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-__version__ = "1.5"
+__version__ = "1.6"
 
 setup(
     name="awsenv",
