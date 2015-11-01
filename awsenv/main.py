@@ -34,6 +34,10 @@ def parse_args(args):
         type=int,
         default=DEFAULT_SESSION_DURATION,
     )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+    )
     args = parser.parse_args(args)
     return args
 
@@ -51,6 +55,7 @@ def to_environment(variables):
 def get_profile(profile=None,
                 session_duration=DEFAULT_SESSION_DURATION,
                 assume_role=True,
+                refresh=False,
                 account_id=None):
     """
     Construct an AWS Profile.
@@ -69,7 +74,7 @@ def get_profile(profile=None,
     # look for a cached session in the environment
     cached_session = CachedSession.from_environment(
         session_duration=session_duration,
-    ) if assume_role else None
+    ) if assume_role and not refresh else None
 
     # then load the profile, updating credentials based on the cached session and/or assumed role
     aws_profile = AWSProfile(
@@ -86,5 +91,9 @@ def get_profile(profile=None,
 
 def main():
     args = parse_args(argv[1:])
-    profile = get_profile(args.profile, args.session_duration)
+    profile = get_profile(
+        profile=args.profile,
+        session_duration=args.session_duration,
+        refresh=args.refresh,
+    )
     print to_environment(profile.to_envvars())  # noqa
