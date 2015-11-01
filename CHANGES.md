@@ -1,6 +1,6 @@
 # Release Change Log
 
-Version 1.6:
+Version 1.7:
  - Support explicit session refreshing
 
 Version 1.5:
