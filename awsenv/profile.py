@@ -176,13 +176,13 @@ class AWSProfile(AWSSession):
             return
 
         if self.cached_session is not None:
+            print self.merged_config  # noqa
             # use current role
             access_key, secret_key = self.current_role()
         else:
             # assume role to get a new token
             access_key, secret_key = self.assume_role()
 
-        print access_key, secret_key, self.cached_session.token if self.cached_session else None  # noqa
         self.session.set_credentials(
             access_key=access_key,
             secret_key=secret_key,
