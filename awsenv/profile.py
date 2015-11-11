@@ -16,7 +16,59 @@ def get_default_profile_name():
     return environ.get("AWS_DEFAULT_PROFILE", "default")
 
 
-class AWSProfile(object):
+class AWSSession(object):
+    """
+    AWS session wrapper.
+    """
+    def __init__(self, profile=None):
+        self.profile = profile
+        self.region = environ.get("AWS_REGION")
+        self.session = Session(profile=self.profile)
+
+    @property
+    def access_key_id(self):
+        return None
+
+    @property
+    def secret_access_key(self):
+        return None
+
+    @property
+    def region_name(self):
+        return environ.get("AWS_REGION", environ.get("AWS_DEFAULT_REGION", "us-west-2"))
+
+    @property
+    def session_token(self):
+        return None
+
+    def create_client(self,
+                      service_name,
+                      api_version=None,
+                      use_ssl=True,
+                      verify=None,
+                      endpoint_url=None,
+                      config=None):
+        """
+        Create a service from the wrapped session.
+
+        Automatically populates the region name, access key, secret key, and session token.
+        Allows other parameters to be passed.
+        """
+        return self.session.create_client(
+            service_name=service_name,
+            region_name=self.region_name,
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key,
+            aws_session_token=self.session_token,
+            api_version=api_version,
+            use_ssl=use_ssl,
+            verify=verify,
+            endpoint_url=endpoint_url,
+            config=config,
+        )
+
+
+class AWSProfile(AWSSession):
     """
     AWS profile configuration.
     """
@@ -34,37 +86,10 @@ class AWSProfile(object):
         :param cached_session: the cached session to use, if any
         :param account_id: the account id for profile auto-generation (if any)
         """
-        self.profile = profile
         self.session_duration = session_duration
         self.cached_session = cached_session
         self.account_id = account_id
-        self.session = Session(profile=self.profile)
-
-    def create_client(self,
-                      service_name,
-                      api_version=None,
-                      use_ssl=True,
-                      verify=None,
-                      endpoint_url=None,
-                      config=None):
-        """
-        Create a service from this profile's session.
-
-        Automatically populates the region name, access key, secret key, and session token
-        from the loaded profile. Allows other parameters to be passed.
-        """
-        return self.session.create_client(
-            service_name=service_name,
-            region_name=self.region_name,
-            aws_access_key_id=self.access_key_id,
-            aws_secret_access_key=self.secret_access_key,
-            aws_session_token=self.session_token,
-            api_version=api_version,
-            use_ssl=use_ssl,
-            verify=verify,
-            endpoint_url=endpoint_url,
-            config=config,
-        )
+        super(AWSProfile, self).__init__(profile)
 
     @property
     def access_key_id(self):
