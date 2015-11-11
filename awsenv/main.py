@@ -47,8 +47,9 @@ def to_environment(variables):
     Print environment variables for a profile.
     """
     return "\n".join(
-        "unset {};".format(key) if value is None else "export {}={}".format(key, quote(value))
-        for key, value in variables.items()
+        "unset {};".format(key)
+        if variables[key] is None else "export {}={}".format(key, quote(variables[key]))
+        for key in sorted(variables)
     )
 
 
