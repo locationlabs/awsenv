@@ -1,5 +1,8 @@
 # Release Change Log
 
+Version 1.8:
+ - Allow use of underlying session wrapper
+
 Version 1.7:
  - Support explicit session refreshing
 
