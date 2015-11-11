@@ -22,7 +22,6 @@ class AWSSession(object):
     """
     def __init__(self, profile=None):
         self.profile = profile
-        self.region = environ.get("AWS_REGION")
         self.session = Session(profile=self.profile)
 
     @property
@@ -183,11 +182,12 @@ class AWSProfile(AWSSession):
             # assume role to get a new token
             access_key, secret_key = self.assume_role()
 
-        self.session.set_credentials(
-            access_key=access_key,
-            secret_key=secret_key,
-            token=self.cached_session.token if self.cached_session else None,
-        )
+        if access_key and secret_key:
+            self.session.set_credentials(
+                access_key=access_key,
+                secret_key=secret_key,
+                token=self.cached_session.token if self.cached_session else None,
+            )
 
     def current_role(self):
         """

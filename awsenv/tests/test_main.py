@@ -48,5 +48,5 @@ def test_parse_args_custom_session_duration():
 def test_to_environment():
     assert_that(
         to_environment(dict(foo="bar", bar=None)),
-        is_(equal_to("export foo=bar\nunset bar;")),
+        is_(equal_to("unset bar;\nexport foo=bar")),
     )
