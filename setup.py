@@ -2,12 +2,12 @@
 
 from setuptools import setup, find_packages
 
-__version__ = "1.8"
+__version__ = "1.10"
 
 setup(
     name="awsenv",
     version=__version__,
-    description="Opinionated configuration",
+    description="AWS profile and session management from the CLI",
     author="Location Labs",
     author_email="info@locationlabs.com",
     url="http://locationlabs.com",
