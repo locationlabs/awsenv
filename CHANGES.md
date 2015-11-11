@@ -1,6 +1,6 @@
 # Release Change Log
 
-Version 1.9:
+Version 1.10:
  - Allow use of underlying session wrapper
 
 Version 1.7:
