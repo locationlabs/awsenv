@@ -135,3 +135,18 @@ def test_profile_with_role_arn():
             aws_profile.to_envvars().get("AWS_SESSION_NAME"),
             is_(equal_to(CACHED_SESSION.name)),
         )
+
+
+def test_profile_region_from_envvar():
+    """
+    Use AWS_REGION environment variable for region if set.
+    """
+    with custom_config(profile=PROFILE, role_arn=ROLE_ARN):
+        region = 'us-east-2'
+        environ['AWS_REGION'] = region
+        aws_profile = AWSProfile(
+            profile=PROFILE,
+            session_duration=DEFAULT_SESSION_DURATION,
+            cached_session=None,
+        )
+        assert_that(aws_profile.region_name, is_(equal_to(region)))
