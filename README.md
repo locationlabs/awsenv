@@ -50,6 +50,8 @@ Or set the `AWS_PROFILE` environment variable and run `awsenv` without arguments
     export AWS_PROFILE=myprofile
     awsenv
 
+Can also optionally override the region by setting the `AWS_REGION` environment variable.
+
 The output will be a series of `export` (or `unset`) statements:
 
     export AWS_DEFAULT_REGION=us-west-2

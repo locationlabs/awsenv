@@ -156,6 +156,12 @@ class AWSProfile(AWSSession):
                 aws_secret_access_key=self.session._credentials.secret_key,
                 aws_session_token=self.session._credentials.token,
             )
+
+        # Override with AWS_REGION environment variable
+        region_from_envvar = environ.get("AWS_REGION")
+        if region_from_envvar:
+            result.update(region=region_from_envvar)
+
         return result
 
     def to_envvars(self):
